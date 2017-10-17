@@ -18,4 +18,4 @@ PS: minimum of 1 `CupertinoSegmentControlItem` and maximum of 3 `CupertinoSegmen
 
 ## Showcase
 
-![]()
+![](https://github.com/theobouwman/flutter_cupertino_segment_control/blob/master/screenshot.png)
