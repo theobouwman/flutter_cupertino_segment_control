@@ -4,27 +4,31 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/painting.dart';
 
-class CupertinoSegmentControlItem {
+class SegmentControlItem {
+  SegmentControlItem(this.title, this.content);
+
   final String title;
   final Widget content;
-
-  CupertinoSegmentControlItem(this.title, this.content);
 }
 
-class CupertinoSegmentControl extends StatefulWidget {
-  final List<CupertinoSegmentControlItem> tabs;
+abstract class SegmentControlCallbacks {
+  void _changeTab(String title);
+}
+
+class SegmentControl extends StatefulWidget {
+  SegmentControl(this.tabs, {this.activeTabIndex = 0})
+      : assert(tabs.length > 1 && tabs.length <= 3),
+        assert(activeTabIndex <= tabs.length - 1);
+
+  final List<SegmentControlItem> tabs;
   final int activeTabIndex;
 
-  CupertinoSegmentControl(this.tabs, {this.activeTabIndex = 0})
-      : assert(tabs.length > 1 && tabs.length <= 3), assert(activeTabIndex <= tabs.length - 1);
-
   @override
-  State createState() {
-    return new _CupertinoSegmentControlState();
-  }
+  _SegmentControlState createState() => new _SegmentControlState();
 }
 
-class _CupertinoSegmentControlState extends State<CupertinoSegmentControl> {
+class _SegmentControlState extends State<SegmentControl>
+    with SegmentControlCallbacks {
   int _activeTabIndex;
 
   @override
@@ -36,14 +40,25 @@ class _CupertinoSegmentControlState extends State<CupertinoSegmentControl> {
     });
   }
 
+  void _changeTab(String title) {
+    setState(() {
+      for (int i = 0; i < widget.tabs.length; i++) {
+        SegmentControlItem t = widget.tabs[i];
+        if (t.title == title) {
+          _activeTabIndex = i;
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget activeTab = widget.tabs[_activeTabIndex].content;
 
-    List<_CupertinoSegmentControlItem> list = <_CupertinoSegmentControlItem>[];
+    List<_SegmentControlItem> list = <_SegmentControlItem>[];
 
     for (int i = 0; i < widget.tabs.length; i++) {
-      CupertinoSegmentControlItem tap = widget.tabs[i];
+      SegmentControlItem tap = widget.tabs[i];
       bool isActive = tap == widget.tabs[_activeTabIndex];
       _ButtonPlace place = _ButtonPlace.start;
 
@@ -53,7 +68,7 @@ class _CupertinoSegmentControlState extends State<CupertinoSegmentControl> {
         place = _ButtonPlace.middle;
       }
 
-      list.add(new _CupertinoSegmentControlItem(this, tap, place, isActive));
+      list.add(new _SegmentControlItem(this, tap, place, isActive));
     }
 
     return new Column(
@@ -66,56 +81,43 @@ class _CupertinoSegmentControlState extends State<CupertinoSegmentControl> {
           ),
           padding: new EdgeInsets.all(12.0),
         ),
-        activeTab
+        activeTab,
       ],
     );
   }
-
-  void changeTab(String title) {
-    setState(() {
-      for (int i = 0; i < widget.tabs.length; i++) {
-        CupertinoSegmentControlItem t = widget.tabs[i];
-        if (t.title == title) {
-          _activeTabIndex = i;
-        }
-      }
-    });
-  }
 }
 
-class _CupertinoSegmentControlItem extends StatefulWidget {
+class _SegmentControlItem extends StatefulWidget {
+  _SegmentControlItem(this.callbacks, this.buttonTab, this.place, this.isActive,
+      {this.color = CupertinoColors.activeBlue,
+      this.inverseColor = CupertinoColors.white});
+
   final double _defaultBorderRadius = 3.0;
 
-  final CupertinoSegmentControlItem cupertinoButtonTab;
-  final _CupertinoSegmentControlState parent;
+  final SegmentControlItem buttonTab;
+  final SegmentControlCallbacks callbacks;
   final _ButtonPlace place;
   final bool isActive;
   final Color color;
   final Color inverseColor;
 
-  _CupertinoSegmentControlItem(
-      this.parent, this.cupertinoButtonTab, this.place, this.isActive,
-      {this.color = CupertinoColors.activeBlue,
-      this.inverseColor = CupertinoColors.white});
-
   @override
   State createState() {
-    return new _CupertinoSegmentControlItemState(color, inverseColor);
+    return new _SegmentControlItemState(color, inverseColor);
   }
 }
 
-class _CupertinoSegmentControlItemState
-    extends State<_CupertinoSegmentControlItem> {
+class _SegmentControlItemState extends State<_SegmentControlItem> {
+  _SegmentControlItemState(this.color, this.inverseColor);
+
   Color color;
   Color inverseColor;
   bool tapDown = false;
 
-  _CupertinoSegmentControlItemState(this.color, this.inverseColor);
-
   BoxDecoration _boxDecoration(_ButtonPlace place) {
     BorderRadius radius;
 
-    switch(place) {
+    switch (place) {
       case _ButtonPlace.start:
         radius = new BorderRadius.only(
           topLeft: new Radius.circular(widget._defaultBorderRadius),
@@ -173,16 +175,16 @@ class _CupertinoSegmentControlItemState
         _tabDown();
       },
       onTapUp: (_) {
-       _tabUp();
+        _tabUp();
       },
       onTap: () {
-        widget.parent.changeTab(widget.cupertinoButtonTab.title);
+        widget.callbacks._changeTab(widget.buttonTab.title);
       },
       child: new Container(
         decoration: _boxDecoration(widget.place),
         padding: new EdgeInsets.fromLTRB(20.0, 4.0, 20.0, 4.0),
         child: new Text(
-          widget.cupertinoButtonTab.title,
+          widget.buttonTab.title,
           style: new TextStyle(color: widget.isActive ? inverseColor : color),
         ),
       ),
