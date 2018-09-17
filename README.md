@@ -1,3 +1,7 @@
+# Development Stopped
+
+Flutter has a Cupertino Segmentcontrol now: https://github.com/flutter/flutter/blob/master/packages/flutter/lib/src/cupertino/segmented_control.dart
+
 # cupertino_segment_control
 
 A flutter package which adds the [Apple's iOS Segment Control UI element](https://developer.apple.com/ios/human-interface-guidelines/controls/segmented-controls/).
